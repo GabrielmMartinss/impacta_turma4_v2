@@ -1,0 +1,24 @@
+---
+all:
+   vars:
+      ansible_user: 'suporte'
+      ansible_become: 'yes'
+      ansible_become_method: 'sudo'
+      mba: 'Impacta'  
+          
+   hosts:
+      local:
+         vars:
+            IMPACTA_IMAGE: 'impacta_app:1.0'
+            var_do_inventory: 'Inv-Var'
+            lista_do_inventory:
+            - "Fiat"
+            - "VW"
+            - "Ford" 
+         hosts:
+         127.0.0.1:
+            datacenter: primario
+      remoto:
+      hosts:
+         10.10.10.5:
+            datacenter: secundario

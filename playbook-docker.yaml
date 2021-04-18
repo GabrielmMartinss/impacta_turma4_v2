@@ -1,0 +1,68 @@
+- name: INICIANDO A PLAYBOOK
+  hosts: localhost
+  gather_facts: False
+  debugger: on_skipped
+
+  environment:
+    IMPACTA_IMAGE: "{{ IMPACTA_IMAGE }}"
+
+  tasks:
+  - name: VALIDANDO VARS 
+    ansible.builtin.debug:
+      msg:  EXTRA_VAR_IMG_VERSION={{ EXTRA_VAR_IMG_VERSION }}, IMPACTA_IMAGE= {{ IMPACTA_IMAGE }} 
+  # - name: Instalando docker
+  #   apt:
+  #     name: docker.io
+  #     update_cache: yes
+  #     state: present
+  
+  # - name: Instalando docker-compose
+  #   apt:
+  #     name: docker-compose
+  #     update_cache: yes
+  #     state: present
+
+
+  - name: INSTALACAO DOCKER
+    apt:
+      name: "{{ item }}"
+      update_cache: yes
+      state: present
+    with_items:
+      - docker.io
+      - docker-compose
+
+  - name: Habilitar docker no boot
+    service:
+        name: docker
+        enabled: yes
+        state: started
+
+  - name: Copiando artefatos para o servidor
+    copy:
+      src: "{{ item }}"
+      dest: "/root/{{ item }}"
+      owner: root
+      group: root
+    with_items:
+      - docker-compose.yml
+      - Dockerfile
+      - app.py
+      - requirements.txt 
+
+  # - name: Construindo a imagem
+  #   command: docker build -t impacta_app:1.0 .
+  #   args:
+  #      chdir: /root/
+  #   register: docker_build
+  
+  - name: "CONSTRUINDO A IMAGEM - impacta_app:{{ EXTRA_VAR_IMG_VERSION }}"
+    docker_image: 
+      name: impacta_app:{{ EXTRA_VAR_IMG_VERSION }}
+      path: /root/
+
+  - name: Executando o docker-compose
+    command: docker-compose up -d
+    args:
+      chdir: /root/
+    register: docker_compose_up
